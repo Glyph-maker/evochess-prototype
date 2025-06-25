@@ -1,0 +1,75 @@
+const initialBoard = [
+  ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],
+  ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
+  [null, null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null, null],
+  ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+  ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R']
+];
+
+const pieceNames = {
+  p: 'Pawn', r: 'Rook', n: 'Knight', b: 'Bishop', q: 'Queen', k: 'King',
+  P: 'Pawn', R: 'Rook', N: 'Knight', B: 'Bishop', Q: 'Queen', K: 'King'
+};
+
+const EvoChess = () => {
+  const [board, setBoard] = useState(initialBoard);
+  const [selected, setSelected] = useState(null);
+  const [turn, setTurn] = useState('white');
+
+  const isWhite = piece => piece && piece === piece.toUpperCase();
+
+  const handleClick = (row, col) => {
+    const piece = board[row][col];
+
+    if (selected) {
+      const [srcRow, srcCol] = selected;
+      const srcPiece = board[srcRow][srcCol];
+
+      if ((turn === 'white') === isWhite(srcPiece)) {
+        const destination = board[row][col];
+
+        const newBoard = board.map(r => [...r]);
+        if (destination && isWhite(destination) !== isWhite(srcPiece)) {
+          // Evolve if capturing
+          newBoard[row][col] = srcPiece.toLowerCase() === 'p' ? destination : srcPiece;
+          newBoard[srcRow][srcCol] = null;
+        } else if (!destination) {
+          newBoard[row][col] = srcPiece;
+          newBoard[srcRow][srcCol] = null;
+        }
+
+        setBoard(newBoard);
+        setTurn(turn === 'white' ? 'black' : 'white');
+        setSelected(null);
+      }
+    } else if (piece && ((turn === 'white') === isWhite(piece))) {
+      setSelected([row, col]);
+    }
+  };
+
+  return (
+    <div className="p-4">
+      <h1 className="text-xl font-bold mb-2">♟️ EvoChess Prototype (Pawn Evolution)</h1>
+      <div className="grid grid-cols-8 w-max">
+        {board.map((row, rIdx) =>
+          row.map((cell, cIdx) => (
+            <div
+              key={`${rIdx}-${cIdx}`}
+              className={`w-12 h-12 flex items-center justify-center border text-lg font-semibold cursor-pointer ${
+                (rIdx + cIdx) % 2 === 0 ? 'bg-gray-300' : 'bg-gray-600 text-white'
+              } ${selected?.[0] === rIdx && selected?.[1] === cIdx ? 'ring-4 ring-yellow-400' : ''}`}
+              onClick={() => handleClick(rIdx, cIdx)}
+            >
+              {cell || ''}
+            </div>
+          ))
+        )}
+      </div>
+      <p className="mt-4">Current Turn: <strong>{turn}</strong></p>
+      <p className="text-sm text-gray-600">Click to move. Pawns evolve when capturing enemy pieces.</p>
+    </div>
+  );
+};
